@@ -1,1 +1,36 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Odbierz Nagrodę</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding-top: 100px; }
+        .box { background: #1e1e1e; display: inline-block; padding: 40px; border-radius: 20px; border: 2px solid #00ff88; }
+        .code { font-size: 48px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; color: #00ff88; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>ZADANIE WYKONANE!</h1>
+        <p>Wpisz ten kod w grze:</p>
+        <div id="result" class="code">ŁADOWANIE...</div>
+    </div>
 
+    <script>
+        const SECRET_SALT = "1800Skenk1800"; // <--- ZMIEŃ TO I ZAPAMIĘTAJ
+
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const type = params.get('type');
+
+        if(id && type) {
+            const rawData = id + type + SECRET_SALT;
+            const hash = CryptoJS.SHA256(rawData).toString().toUpperCase();
+            document.getElementById('result').innerText = hash.substring(0, 6);
+        } else {
+            document.getElementById('result').innerText = "BŁĄD LINKU";
+        }
+    </script>
+</body>
+</html>
