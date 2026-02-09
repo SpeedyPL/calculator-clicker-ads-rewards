@@ -68,18 +68,23 @@
         // PANCERNA FUNKCJA DO WYCIĄGANIA PARAMETRÓW
         // Działa nawet jak link jest "popsuty" przez reklamy
         function getParam(name) {
-            // Sposób 1: Standardowy
+            // 1. Szukaj w standardowych parametrach (?id=...)
             const urlParams = new URLSearchParams(window.location.search);
             let val = urlParams.get(name);
             
-            // Sposób 2: Ratunkowy (szukanie w tekście adresu)
+            // 2. Szukaj w "kotwicy" (#id=...) - to rozwiązanie dla Linkvertise
             if (!val) {
-                name = name.replace(/[\[\]]/g, '\\$&');
-                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
-                var results = regex.exec(window.location.href);
-                if (results && results[2]) {
-                    val = decodeURIComponent(results[2].replace(/\+/g, ' '));
-                }
+                const hash = window.location.hash.substring(1); // usuwa #
+                const hashParams = new URLSearchParams(hash);
+                val = hashParams.get(name);
+            }
+        
+            // 3. Szukaj surowym tekstem (metoda ratunkowa)
+            if (!val) {
+                const url = window.location.href;
+                const regex = new RegExp(name + '[=:]([^&#]+)');
+                const results = regex.exec(url);
+                val = results ? results[1] : null;
             }
             return val;
         }
