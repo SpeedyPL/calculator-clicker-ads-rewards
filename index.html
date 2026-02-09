@@ -2,121 +2,54 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Odbierz Nagrodę</title>
+    <title>Weryfikacja Reklamy</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: #1e1e1e;
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid #00ff88;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
-            text-align: center;
-            max-width: 90%;
-            width: 400px;
-        }
-        h1 { color: #00ff88; margin-top: 0; }
-        p { color: #aaaaaa; }
-        .code-box {
-            background: #000;
-            color: #00ff88;
-            font-size: 42px;
-            font-weight: bold;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-            letter-spacing: 4px;
-            border: 1px dashed #333;
-            word-break: break-all;
-        }
-        .debug-info {
-            font-size: 10px;
-            color: #444;
-            margin-top: 20px;
-        }
+        body { background-color: #121212; color: white; font-family: sans-serif; text-align: center; padding-top: 100px; }
+        .box { border: 2px solid #00ff88; display: inline-block; padding: 30px; border-radius: 15px; background: #1e1e1e; }
+        .code { font-size: 50px; color: #00ff88; font-family: monospace; margin: 20px; }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1>SUKCES!</h1>
-        <p>Wpisz ten kod w grze:</p>
-        
-        <div id="result" class="code-box">...</div>
-        
-        <p style="font-size: 12px; color: #666;">Kod jest ważny tylko dla tej sesji.</p>
-        <div id="debug" class="debug-info"></div>
+    <div class="box">
+        <h1 id="status">Inicjalizacja...</h1>
+        <div id="result" class="code">---</div>
+        <p id="desc">Proszę czekać...</p>
     </div>
 
     <script>
-        // --- KONFIGURACJA ---
-        const SECRET_SALT = "1800Skenk1800"; // MUSI BYĆ TAKIE SAMO JAK W UNITY
-        // --------------------
+        const SALT = "1800Skenk1800";
+        const AD_LINK = "https://link-hub.net/3407631/7NvAFra2HiYi";
 
-        // PANCERNA FUNKCJA DO WYCIĄGANIA PARAMETRÓW
-        // Działa nawet jak link jest "popsuty" przez reklamy
-        function getParam(name) {
-            // 1. Szukaj w standardowych parametrach (?id=...)
-            const urlParams = new URLSearchParams(window.location.search);
-            let val = urlParams.get(name);
-            
-            // 2. Szukaj w "kotwicy" (#id=...) - to rozwiązanie dla Linkvertise
-            if (!val) {
-                const hash = window.location.hash.substring(1); // usuwa #
-                const hashParams = new URLSearchParams(hash);
-                val = hashParams.get(name);
-            }
-        
-            // 3. Szukaj surowym tekstem (metoda ratunkowa)
-            if (!val) {
-                const url = window.location.href;
-                const regex = new RegExp(name + '[=:]([^&#]+)');
-                const results = regex.exec(url);
-                val = results ? results[1] : null;
-            }
-            return val;
-        }
+        // Funkcja wyciągająca dane z linku
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const type = params.get('type');
 
-        // 1. Pobieramy dane
-        const id = getParam('id');
-        const type = getParam('type');
-
-        // 2. Elementy HTML
-        const resultBox = document.getElementById('result');
-        const debugBox = document.getElementById('debug');
-
-        // 3. Logika generowania kodu
         if (id && type) {
-            // Mamy dane! Generujemy Hash.
-            const rawData = id + type + SECRET_SALT;
-            const hash = CryptoJS.SHA256(rawData).toString().toUpperCase();
+            // 1. ZAPISUJEMY DANE I IDZIEMY DO REKLAMY
+            localStorage.setItem('temp_id', id);
+            localStorage.setItem('temp_type', type);
+            document.getElementById('status').innerText = "Zapisano sesję";
+            document.getElementById('desc').innerText = "Przekierowanie do reklamy...";
             
-            // Wyświetlamy 6 znaków
-            resultBox.innerText = hash.substring(0, 6);
-            debugBox.innerText = "Status: OK (ID: " + id + ")";
+            setTimeout(() => { window.location.href = AD_LINK; }, 1000);
         } else {
-            // Błąd
-            resultBox.innerText = "BŁĄD";
-            resultBox.style.color = "red";
-            resultBox.style.borderColor = "red";
-            debugBox.innerText = "Nie znaleziono ID lub TYPE w linku.";
-        }
-        
-        // Wyświetlanie całego linku w konsoli dla Ciebie (F12)
-        console.log("Full URL:", window.location.href);
-    </script>
+            // 2. SPRAWDZAMY CZY WRÓCILIŚMY Z REKLAMY
+            const savedId = localStorage.getItem('temp_id');
+            const savedType = localStorage.getItem('temp_type');
 
+            if (savedId && savedType) {
+                const hash = CryptoJS.SHA256(savedId + savedType + SALT).toString().toUpperCase();
+                document.getElementById('status').innerText = "SUKCES!";
+                document.getElementById('result').innerText = hash.substring(0, 6);
+                document.getElementById('desc').innerText = "Wpisz ten kod w Unity.";
+                localStorage.removeItem('temp_id'); // Jednorazowy kod
+            } else {
+                document.getElementById('status').innerText = "BŁĄD";
+                document.getElementById('desc').innerText = "Brak aktywnej sesji. Uruchom reklamę z poziomu gry.";
+            }
+        }
+    </script>
 </body>
 </html>
