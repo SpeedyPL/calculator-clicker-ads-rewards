@@ -1,53 +1,42 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Weryfikacja Reklamy</title>
+    <title>Weryfikacja</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <style>
-        body { background-color: #121212; color: white; font-family: sans-serif; text-align: center; padding-top: 100px; }
-        .box { border: 2px solid #00ff88; display: inline-block; padding: 30px; border-radius: 15px; background: #1e1e1e; }
-        .code { font-size: 50px; color: #00ff88; font-family: monospace; margin: 20px; }
-    </style>
 </head>
-<body>
-    <div class="box">
+<body style="background:#121212; color:white; text-align:center; font-family:sans-serif;">
+    <div style="margin-top:100px; border:2px solid #00ff88; display:inline-block; padding:20px;">
         <h1 id="status">Inicjalizacja...</h1>
-        <div id="result" class="code">---</div>
-        <p id="desc">Proszę czekać...</p>
+        <div id="result" style="font-size:40px; color:#00ff88;">---</div>
+        <p id="desc">Czekaj na przekierowanie...</p>
     </div>
 
     <script>
         const SALT = "1800Skenk1800";
-        const AD_LINK = "https://link-hub.net/3407631/7NvAFra2HiYi";
+        const AD_LINK = "https://link-hub.net/3407631/7NvAFra2HiYi"; // Twój link Linkvertise
 
-        // Funkcja wyciągająca dane z linku
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         const type = params.get('type');
 
         if (id && type) {
-            // 1. ZAPISUJEMY DANE I IDZIEMY DO REKLAMY
-            localStorage.setItem('temp_id', id);
-            localStorage.setItem('temp_type', type);
-            document.getElementById('status').innerText = "Zapisano sesję";
-            document.getElementById('desc').innerText = "Przekierowanie do reklamy...";
-            
+            // Pierwsze wejście z gry: zapamiętaj i wyślij do reklamy
+            localStorage.setItem('id', id);
+            localStorage.setItem('type', type);
             setTimeout(() => { window.location.href = AD_LINK; }, 1000);
         } else {
-            // 2. SPRAWDZAMY CZY WRÓCILIŚMY Z REKLAMY
-            const savedId = localStorage.getItem('temp_id');
-            const savedType = localStorage.getItem('temp_type');
-
-            if (savedId && savedType) {
-                const hash = CryptoJS.SHA256(savedId + savedType + SALT).toString().toUpperCase();
-                document.getElementById('status').innerText = "SUKCES!";
+            // Powrót z reklamy: odczytaj z pamięci i pokaż kod
+            const sId = localStorage.getItem('id');
+            const sType = localStorage.getItem('type');
+            if (sId && sType) {
+                const hash = CryptoJS.SHA256(sId + sType + SALT).toString().toUpperCase();
+                document.getElementById('status').innerText = "TWÓJ KOD:";
                 document.getElementById('result').innerText = hash.substring(0, 6);
-                document.getElementById('desc').innerText = "Wpisz ten kod w Unity.";
-                localStorage.removeItem('temp_id'); // Jednorazowy kod
+                document.getElementById('desc').innerText = "Wpisz go w Unity.";
+                localStorage.removeItem('id'); // Kod staje się jednorazowy
             } else {
                 document.getElementById('status').innerText = "BŁĄD";
-                document.getElementById('desc').innerText = "Brak aktywnej sesji. Uruchom reklamę z poziomu gry.";
+                document.getElementById('desc').innerText = "Uruchom reklamę z poziomu gry.";
             }
         }
     </script>
