@@ -13,19 +13,17 @@
 
     <script>
         const SALT = "1800Skenk1800";
-        const AD_LINK = "https://link-hub.net/3407631/7NvAFra2HiYi"; // Twój link Linkvertise
+        const AD_LINK = "https://link-hub.net/3407631/7NvAFra2HiYi";
 
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         const type = params.get('type');
 
         if (id && type) {
-            // Pierwsze wejście z gry: zapamiętaj i wyślij do reklamy
             localStorage.setItem('id', id);
             localStorage.setItem('type', type);
             setTimeout(() => { window.location.href = AD_LINK; }, 1000);
         } else {
-            // Powrót z reklamy: odczytaj z pamięci i pokaż kod
             const sId = localStorage.getItem('id');
             const sType = localStorage.getItem('type');
             if (sId && sType) {
@@ -33,7 +31,7 @@
                 document.getElementById('status').innerText = "TWÓJ KOD:";
                 document.getElementById('result').innerText = hash.substring(0, 6);
                 document.getElementById('desc').innerText = "Wpisz go w Unity.";
-                localStorage.removeItem('id'); // Kod staje się jednorazowy
+                localStorage.removeItem('id');
             } else {
                 document.getElementById('status').innerText = "BŁĄD";
                 document.getElementById('desc').innerText = "Uruchom reklamę z poziomu gry.";
